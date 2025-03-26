@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Email Challenge</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Phishing Email Challenge</h1>
+    <div id="email-list">
+        <p>Loading emails...</p>
+    </div>
+
+    <div id="email-details" class="hidden">
+        <h2>Email Details</h2>
+        <p><strong>From:</strong> <span id="email-sender"></span></p>
+        <p><strong>Subject:</strong> <span id="email-subject"></span></p>
+        <p id="email-body"></p>
+        <button onclick="submitChoice(true)">Mark as Phishing</button>
+        <button onclick="submitChoice(false)">Mark as Safe</button>
+    </div>
+
+    <p id="feedback"></p>
+
+    <script src="/script.js"></script>
+</body>
+</html>
