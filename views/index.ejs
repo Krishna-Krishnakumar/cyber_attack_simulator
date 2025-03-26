@@ -3,25 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phishing Email Challenge</title>
+    <title>Phishing Email Challenge - Virtual Office</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <h1>Phishing Email Challenge</h1>
-    <div id="email-list">
-        <p>Loading emails...</p>
+    <header class="app-header">
+        <div class="header-content">
+            <h1>Virtual Office Inbox</h1>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <i class="fas fa-shield-alt"></i>
+                    Score: <span id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-level-up-alt"></i>
+                    Level: <span id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    Time: <span id="timer">5:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="game-progress">
+                <h3>Level Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="game-tips">
+                <h3>Security Tips</h3>
+                <ul id="security-tips">
+                    <li>Check sender's email address carefully</li>
+                    <li>Be wary of urgent or threatening language</li>
+                    <li>Hover over links before clicking</li>
+                    <li>Watch for spelling and grammar errors</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main>
+            <div id="email-list">
+                <p>Loading emails...</p>
+            </div>
+
+            <div id="email-details" class="hidden">
+                <div class="email-full-header">
+                    <h2>Email Details</h2>
+                    <p><strong>From:</strong> <span id="email-sender"></span> (<span id="email-address"></span>)</p>
+                    <p><strong>Subject:</strong> <span id="email-subject"></span></p>
+                    <p><strong>Date:</strong> <span id="email-date"></span></p>
+                </div>
+                <div id="email-body"></div>
+                <div class="email-actions">
+                    <button onclick="submitChoice(true)" class="btn-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Mark as Phishing
+                    </button>
+                    <button onclick="submitChoice(false)" class="btn-safe">
+                        <i class="fas fa-check-circle"></i>
+                        Mark as Safe
+                    </button>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div id="email-details" class="hidden">
-        <h2>Email Details</h2>
-        <p><strong>From:</strong> <span id="email-sender"></span></p>
-        <p><strong>Subject:</strong> <span id="email-subject"></span></p>
-        <p id="email-body"></p>
-        <button onclick="submitChoice(true)">Mark as Phishing</button>
-        <button onclick="submitChoice(false)">Mark as Safe</button>
+    <div id="feedback"></div>
+
+    <div class="attack-simulation">
+        <div class="attack-content">
+            <h2><i class="fas fa-virus"></i> Cyber Attack in Progress!</h2>
+            <p>Oh no! That was a phishing email and you fell for it. Your system is now compromised!</p>
+            <p>Learning Point: <span id="learning-point"></span></p>
+        </div>
     </div>
 
-    <p id="feedback"></p>
+    <div class="level-complete hidden">
+        <h2><i class="fas fa-trophy"></i> Level Complete!</h2>
+        <p>Great job identifying the threats! You've earned <span id="points-earned">0</span> points.</p>
+        <p>Next level will be more challenging...</p>
+        <button onclick="startNextLevel()" class="btn-safe">
+            <i class="fas fa-arrow-right"></i>
+            Continue to Next Level
+        </button>
+    </div>
 
     <script src="/script.js"></script>
 </body>

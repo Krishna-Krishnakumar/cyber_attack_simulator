@@ -13,4 +13,21 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-module.exports = pool.promise();
+// Test database connection
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Successfully connected to the database');
+    connection.release();
+});
+
+const promisePool = pool.promise();
+
+// Add error handler
+promisePool.on('error', err => {
+    console.error('Database error:', err);
+});
+
+module.exports = promisePool;
