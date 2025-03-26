@@ -4,6 +4,8 @@ const gameState = {
     level: 1,
     timeRemaining: 300, // 5 minutes in seconds
     emailsInLevel: 0,
+    completedEmails: 0,
+    currentEmail: null,
     emailsProcessed: 0,
     timer: null,
     incorrectAttempts: 0,
@@ -23,24 +25,33 @@ let feedbackElem = null;
 
 // Make submitChoice globally accessible
 window.submitChoice = async function(isPhishing) {
-    if (!selectedEmailId) return;
+    if (!selectedEmailId) {
+        console.error("No email selected");
+        showFeedback("error", "Please select an email first.");
+        return;
+    }
+
     try {
+        console.log("Submitting choice:", { emailId: selectedEmailId, isPhishing });
         const response = await fetch("/api/check-email", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ emailId: selectedEmailId, userChoice: isPhishing })
         });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
+        console.log("Received response:", result);
         
         // Update game state
-        gameState.emailsProcessed++;
+        updateGameState(result.isCorrect);
         
         if (result.isCorrect) {
             // Correct choice
-            gameState.score += 100;
-            gameState.incorrectAttempts = Math.max(0, gameState.incorrectAttempts - 1);
-            updateScore();
             showFeedback("correct", result.message, "You've earned 100 points!");
         } else {
             // Incorrect choice
@@ -71,7 +82,8 @@ window.submitChoice = async function(isPhishing) {
 
     } catch (error) {
         console.error("Error submitting choice:", error);
-        showFeedback("error", "Error submitting choice. Please try again.");
+        showFeedback("error", `Error: ${error.message}`);
+        // Don't hide email details on error so user can try again
     }
 };
 
@@ -207,13 +219,43 @@ window.loadEmails = async function() {
         const emails = await response.json();
         console.log("Received emails:", emails);
         
-        if (!Array.isArray(emails) || emails.length === 0) {
-            emailList.innerHTML = "<p class='error-message'>No emails available.</p>";
+        if (!Array.isArray(emails)) {
+            emailList.innerHTML = `<p class='error-message'>Failed to load emails: Invalid response format</p>`;
+            return;
+        }
+
+        if (emails.length === 0) {
+            // Check if we've completed all emails or if there are no emails in the database
+            if (gameState.completedEmails > 0) {
+                emailList.innerHTML = `
+                    <div class="completion-message">
+                        <h2><i class="fas fa-trophy"></i> Congratulations!</h2>
+                        <p>You've completed all available emails!</p>
+                        <p>Final Score: ${gameState.score}</p>
+                        <button onclick="restartGame()" class="btn-safe">
+                            <i class="fas fa-redo"></i>
+                            Play Again
+                        </button>
+                    </div>`;
+            } else {
+                emailList.innerHTML = `<p class='error-message'>No emails available in the database. Please contact support.</p>`;
+            }
             return;
         }
 
         emailList.innerHTML = "";
         gameState.emailsInLevel = emails.length;
+
+        // Add progress bar
+        const progressBar = document.createElement("div");
+        progressBar.className = "progress-bar";
+        progressBar.innerHTML = `
+            <div class="progress-text">Progress: ${gameState.completedEmails}/${gameState.emailsInLevel}</div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: ${(gameState.completedEmails / gameState.emailsInLevel) * 100}%"></div>
+            </div>
+        `;
+        emailList.appendChild(progressBar);
 
         emails.forEach(email => {
             const emailItem = document.createElement("div");
@@ -235,7 +277,15 @@ window.loadEmails = async function() {
                 </div>
                 <div class="email-preview">${email.content.substring(0, 100)}...</div>
             `;
-            emailItem.onclick = () => showEmail(email);
+
+            // Only add click handler if email is not completed
+            if (!email.completed) {
+                emailItem.onclick = () => showEmail(email);
+            } else {
+                emailItem.classList.add("completed");
+                emailItem.innerHTML += '<div class="completed-badge">Completed</div>';
+            }
+
             emailList.appendChild(emailItem);
         });
     } catch (error) {
@@ -300,6 +350,17 @@ function startTimer() {
         const seconds = gameState.timeRemaining % 60;
         timerElem.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }, 1000);
+}
+
+// Update game state when an email is completed
+function updateGameState(isCorrect) {
+    gameState.emailsProcessed++;
+    gameState.completedEmails++;
+    if (isCorrect) {
+        gameState.score += 10;
+    }
+    updateScore();
+    loadEmails(); // Reload emails to update progress
 }
 
 // Initialize when DOM is loaded
